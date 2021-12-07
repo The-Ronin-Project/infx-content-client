@@ -42,7 +42,7 @@ jobs:
 
   k8s:
     uses: projectronin/github/.github/workflows/k8s_deploy.yml@master
-    needs: [python-test,get-tags,image-push,helm]
+    needs: [get-tags,image-push,helm]
     with:
       environment: prod
       cluster-name: aks-prod-centralus
