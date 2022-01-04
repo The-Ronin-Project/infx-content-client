@@ -1,6 +1,6 @@
 import requests, pandas
 
-BASE_URL = "http://hashi-ds.prod.projectronin.io/"
+BASE_URL = "http://infx-api-ds.prod.projectronin.io/"
 # BASE_URL = "http://127.0.0.1:5000/"
 
 class Code:
