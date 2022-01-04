@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='hashi',
+    name='infx-api',
     version='1.0',
-    packages=['hashi'],
+    packages=['infx-api'],
 )
