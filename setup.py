@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='infx-api',
+    name='infx_api',
     version='1.0',
-    packages=['infx-api'],
+    packages=['infx_api'],
 )

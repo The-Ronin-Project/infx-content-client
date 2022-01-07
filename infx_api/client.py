@@ -1,6 +1,6 @@
 import requests, pandas
 
-BASE_URL = "http://infx-api-ds.prod.projectronin.io/"
+BASE_URL = "http://hashi-ds.prod.projectronin.io/"
 # BASE_URL = "http://127.0.0.1:5000/"
 
 class Code:
@@ -38,6 +38,15 @@ class ValueSet:
 
     def load_versions_metadata_as_df(self):
         return pandas.read_json(f'{BASE_URL}/ValueSets/{self.name}/versions/')
+
+    @classmethod
+    def load_all_value_sets_metadata(cls):
+        md = requests.get(f'{BASE_URL}/ValueSets/')
+        return md.json()
+
+    @classmethod
+    def load_all_value_sets_metadata_as_df(cls):
+        return pandas.read_json(f'{BASE_URL}/ValueSets/')
 
 
 class ValueSetVersion:
