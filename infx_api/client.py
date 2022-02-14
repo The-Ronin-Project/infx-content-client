@@ -48,6 +48,13 @@ class ValueSet:
     def load_all_value_sets_metadata_as_df(cls):
         return pandas.read_json(f'{BASE_URL}/ValueSets/')
 
+    @classmethod
+    def load_all_value_set_versions_by_status(cls, status=['active', 'retired']):
+        data = requests.get(f'{BASE_URL}/ValueSets/all/', params={
+            'status': ','.join(status)
+        })
+        return data.json()
+
 
 class ValueSetVersion:
     def __init__(self, json):
