@@ -53,6 +53,7 @@ class ValueSetVersion:
     def __init__(self, json):
         self.json = json
         self.type = 'intensional' if self.is_intensional() is True else 'extensional'
+        self.type = 'intensional'
         self.codes = []
 
         if self.type == 'intensional': self.load_intensional()
@@ -77,6 +78,59 @@ class ValueSetVersion:
                     display=x.get('display')
                 )
             )
+
+    @property
+    def additional_data(self):
+        # This property holds additional fields we've supplied that aren't part of the FHIR spec
+        return self.json.get('additionalData')
+
+    @property
+    def effective_start(self):
+        return self.additional_data.get('effective_start')
+
+    @property
+    def effective_end(self):
+        return self.additional_data.get('effective_end')
+
+    @property
+    def version_uuid(self):
+        return self.additional_data.get('version_uuid')
+
+    @property
+    def expansion_uuid(self):
+        return self.additional_data.get('expansion_uuid')
+
+    @property
+    def contact(self):
+        return self.json.get('contact')[0].get('name')
+
+    @property
+    def name(self):
+        return self.json.get('name')
+
+    @property
+    def title(self):
+        return self.json.get('title')
+
+    @property
+    def status(self):
+        return self.json.get('status')
+
+    @property
+    def version(self):
+        return self.json.get('version')
+
+    @property
+    def purpose(self):
+        return self.json.get('purpose')
+
+    @property
+    def description(self):
+        return self.json.get('description')
+
+    @property
+    def experimental(self):
+        return self.json.get('experimental')
 
 if __name__ == '__main__':
     vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
