@@ -25,19 +25,19 @@ class Code:
         return serialized
 
 class ValueSet:
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, identifier):
+        self.identifier = identifier
 
     def load_most_recent_active_version(self):
-        vs = requests.get(f'{BASE_URL}/ValueSets/{self.name}/most_recent_active_version')
+        vs = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/most_recent_active_version')
         return ValueSetVersion(vs.json())
 
     def load_versions_metadata(self):
-        md = requests.get(f'{BASE_URL}/ValueSets/{self.name}/versions/')
+        md = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
         return md.json()
 
     def load_versions_metadata_as_df(self):
-        return pandas.read_json(f'{BASE_URL}/ValueSets/{self.name}/versions/')
+        return pandas.read_json(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
 
     @classmethod
     def load_all_value_sets_metadata(cls):
