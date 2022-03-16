@@ -1,7 +1,10 @@
 from setuptools import setup
 
 setup(
-    name='infx_api',
-    version='1.2',
-    packages=['infx_api'],
+    name='infx_content_client',
+    packages=['infx_content_client'],
+    use_scm_version = {
+        "local_scheme": "no-local-version"
+    },
+    setup_requires=['setuptools_scm'],
 )
