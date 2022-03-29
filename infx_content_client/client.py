@@ -104,6 +104,10 @@ class ValueSetVersion:
         return self.additional_data.get('version_uuid')
 
     @property
+    def value_set_uuid(self):
+        return self.additional_data.get('value_set_uuid')
+
+    @property
     def expansion_uuid(self):
         return self.additional_data.get('expansion_uuid')
 
