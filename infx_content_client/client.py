@@ -30,6 +30,7 @@ class ValueSet:
 
     def load_most_recent_active_version(self):
         vs = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/most_recent_active_version')
+        # This can fail if there is no active version
         if vs.status_code != 200:
             raise Exception(vs.json().get('message'))
         return ValueSetVersion(vs.json())
