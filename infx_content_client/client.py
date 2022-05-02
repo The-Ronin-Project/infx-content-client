@@ -30,6 +30,8 @@ class ValueSet:
 
     def load_most_recent_active_version(self):
         vs = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/most_recent_active_version')
+        if vs.status_code != 200:
+            raise Exception(vs.json().get('message'))
         return ValueSetVersion(vs.json())
 
     def load_versions_metadata(self):
@@ -153,3 +155,7 @@ if __name__ == '__main__':
 
     version = ValueSetVersion.load('529ef7a0-4241-11ec-bec2-fbf6ebf76a60')
     print(version)
+
+    failed_version = ValueSet('0bd56b70-9ff6-11ec-95eb-3f73787c1997').load_most_recent_active_version()
+    # print(dir(failed_version))
+
