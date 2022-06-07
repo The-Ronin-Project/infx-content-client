@@ -1,7 +1,7 @@
 import requests, pandas
 
-BASE_URL = "http://hashi-ds.prod.projectronin.io/"
-# BASE_URL = "http://127.0.0.1:5000/"
+BASE_URL = "http://hashi.prod.projectronin.io/"
+# BASE_URL = "http://127.0.0.1:5500/"
 
 class Code:
     def __init__(self, system, version, code, display):
@@ -104,6 +104,10 @@ class ValueSetVersion:
         return self.additional_data.get('version_uuid')
 
     @property
+    def value_set_uuid(self):
+        return self.additional_data.get('value_set_uuid')
+
+    @property
     def expansion_uuid(self):
         return self.additional_data.get('expansion_uuid')
 
@@ -139,13 +143,41 @@ class ValueSetVersion:
     def experimental(self):
         return self.json.get('experimental')
 
-if __name__ == '__main__':
-    vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
-    for code in vs_version.codes:
-        print(code.serialize())
-        
-    metadata = ValueSet('test-breast-cancer').load_versions_metadata_as_df()
-    print(metadata)
+class ConceptMap:
+    @classmethod
+    def all_concept_maps(cls, restrict_by_status=['active', 'retired']):
+        all_map_metadata = requests.get(f'{BASE_URL}/ConceptMaps/all/')
+        if all_map_metadata.status_code != 200:
+            raise Exception("Unable to retrieve concept map metadata from infx-content API")
+        filtered_metadata = [x for x in all_map_metadata.json() if x.get('status') in restrict_by_status]
+        return [ConceptMapVersion.load(x.get('concept_map_version_uuid')) for x in filtered_metadata]
 
-    version = ValueSetVersion.load('529ef7a0-4241-11ec-bec2-fbf6ebf76a60')
-    print(version)
+    @classmethod
+    def all_concept_maps_json(cls, restrict_by_status=['active', 'retired']):
+        return [x.json for x in cls.all_concept_maps(restrict_by_status=restrict_by_status)]
+
+
+class ConceptMapVersion:
+    def __init__(self, json):
+        self.json = json
+
+    @classmethod
+    def load(cls, version_uuid):
+        version_data = requests.get(f'{BASE_URL}/ConceptMaps/{version_uuid}')
+        if version_data.status_code != 200:
+            raise Exception(f"Unable to retrieve concept map with UUID: {version_uuid}")
+        return cls(json=version_data.json())
+
+if __name__ == '__main__':
+    # vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
+    # for code in vs_version.codes:
+    #     print(code.serialize())
+        
+    # metadata = ValueSet('test-breast-cancer').load_versions_metadata_as_df()
+    # print(metadata)
+
+    # version = ValueSetVersion.load('529ef7a0-4241-11ec-bec2-fbf6ebf76a60')
+    # print(version)
+
+    all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
+    print(all_concept_maps)
