@@ -1,6 +1,6 @@
 import requests, pandas
 
-BASE_URL = "http://hashi.prod.projectronin.io/"
+BASE_URL = "https://hashi.prod.projectronin.io/"
 # BASE_URL = "http://127.0.0.1:5500/"
 
 class Code:
