@@ -1,11 +1,11 @@
-name: "Build client and Push Tag based on version"
+name: "Build client Push Tag and Publish Version"
 
 on:
   push:
-    #branches: [master]
+    branches: [master]
 
 jobs:
-  build:
+  build_tag_publish:
     runs-on: self-hosted
 
     steps:
@@ -47,7 +47,6 @@ jobs:
     - name: Echo the version from python
       run: pipenv run python setup.py --version
 
-
       # string is dirtied by an implicit quote char so clean it
     - id: clean
       uses: mad9000/actions-find-and-replace-string@2
@@ -62,7 +61,7 @@ jobs:
     - uses: rickstaa/action-create-tag@v1.3.2
       with:
         tag: "${{ steps.clean.outputs.value }}"
-
+      # now publish the package
     - name: Publish Python Package
       uses: mariamrf/py-package-publish-action@v1.0.0
       with:
