@@ -44,7 +44,7 @@ jobs:
       run: echo "${{ steps.version_file.outputs.content }}"
 
       # string is dirtied by an implicit quote char so clean it
-    - id: clean up dirty version string
+    - id: clean
       uses: mad9000/actions-find-and-replace-string@2
       with:
         source: ${{ steps.version_file.outputs.content }}
