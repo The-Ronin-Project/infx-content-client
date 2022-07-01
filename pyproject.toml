@@ -15,7 +15,7 @@ build-backend = 'setuptools.build_meta'
 [tool.setuptools_scm]
 version_scheme = "guess-next-rc"
 local_scheme = "time-dot-node"
-normalize = false
+normalize = true
 write_to = "RAW_VERSION.txt"
 
 [tool.setuptools.dynamic]
