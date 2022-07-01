@@ -20,17 +20,16 @@ jobs:
         pip install setuptools wheel twine setuptools_scm setuptools_scm_git_semver
         python setup.py sdist bdist_wheel
 
-      - name: Read version file
-        id: version_file
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ./VERSION.txt
-      - name: Echo version
-        run: echo "${{ steps.version_file.outputs.content }}"
+    - name: Read version file
+      id: version_file
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./VERSION.txt
+    - name: Echo version
+      run: echo "${{ steps.version_file.outputs.content }}"
 
-
-      - name: Tag commit
-        uses: tvdias/github-tagger@v0.0.1
-        with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        tag: "${{ steps.version_file.outputs.content }}"
+    - name: Tag commit
+      uses: tvdias/github-tagger@v0.0.1
+      with:
+      repo-token: "${{ secrets.GITHUB_TOKEN }}"
+      tag: "${{ steps.version_file.outputs.content }}"
