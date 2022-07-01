@@ -43,6 +43,19 @@ jobs:
     - name: run git init
       run: git init
 
+    - name: Echo version
+      run: echo "${{ steps.version_file.outputs.content }}"
+
+    - id: clean
+      uses: mad9000/actions-find-and-replace-string@2
+      with:
+        source: ${{ steps.version_file.outputs.content }}
+        find: "'"
+        replace: ''
+
+    - name: Echo version
+      run: echo "${{ steps.clean.outputs.value }}"
+
     - uses: actions-ecosystem/action-push-tag@v1
       with:
         tag: "${{ steps.version_file.outputs.content }}"
