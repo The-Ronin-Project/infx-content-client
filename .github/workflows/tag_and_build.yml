@@ -30,8 +30,6 @@ jobs:
         pipenv install setuptools setuptools_scm setuptools_scm_git_semver
         pipenv run python setup.py sdist bdist_wheel
 
-    - name: Tag commit
-      uses: tvdias/github-tagger@v0.0.1
+    - uses: actions-ecosystem/action-push-tag@v1
       with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-        tag: "${{ steps.version_file.outputs.content }}"
+        tag: ${{ steps.version_file.outputs.content }}
