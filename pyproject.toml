@@ -1,6 +1,6 @@
 [project]
 name = "infx-content-client"
-description = "Create a pyproject.toml file for an existing project."
+description = "pyproject.toml file for an existing project."
 dynamic = [
    "version"
 ]
