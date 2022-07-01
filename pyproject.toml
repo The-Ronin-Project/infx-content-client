@@ -8,13 +8,13 @@ dynamic = [
 requires = [
     "setuptools",
     "setuptools_scm",
-    "setuptools_scm_git_semver",
+   # "setuptools_scm_git_semver",
 ]
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools_scm]
-version_scheme = "guess-next-rc"
-local_scheme = "time-dot-node"
+#version_scheme = "guess_next_rc"
+#local_scheme = "semver"
 normalize = true
 write_to = "RAW_VERSION.txt"
 
