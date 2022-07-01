@@ -1,0 +1,64 @@
+name: "Build client and Push Tag based on version"
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+
+    steps:
+      # needs a fetch depth of 0 to get all tags
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - uses: actions-ecosystem/action-get-latest-tag@v1
+      id: get-latest-tag
+      # give me the latest tag in case I need to troubleshoot
+    - name: Echo tag
+      run: echo "${{ steps.get-latest-tag.outputs.tag }}"
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9.7'
+
+    - name: Read version file
+      id: version_file
+      uses: juliangruber/read-file-action@v1
+      with:
+        path: ./VERSION.txt
+
+    - name: Echo version
+      run: echo "${{ steps.version_file.outputs.content }}"
+
+    - name: Install dependencies and build package
+      run: |
+        python -m pip install --upgrade pip
+        pip install wheel twine pipenv setuptools
+        pipenv install setuptools_scm setuptools_scm_git_semver
+        pipenv run python setup.py sdist bdist_wheel
+
+    - name: Echo version
+      run: echo "${{ steps.version_file.outputs.content }}"
+
+    - name: Echo the version from python
+      run: pipenv run python setup.py --version
+
+
+      # string is dirtied by an implicit quote char so clean it
+    - id: clean
+      uses: mad9000/actions-find-and-replace-string@2
+      with:
+        source: ${{ steps.version_file.outputs.content }}
+        find: "'"
+        replace: ''
+
+    - name: Echo cleaned up value
+      run: echo "${{ steps.clean.outputs.value }}"
+
+    - uses: rickstaa/action-create-tag@v1.3.2
+      with:
+        tag: "${{ steps.clean.outputs.value }}"

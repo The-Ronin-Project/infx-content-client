@@ -1,7 +1,26 @@
+[project]
+name = "infx-content-client"
+description = "pyproject.toml file for an existing project."
+dynamic = [
+   "version"
+]
 [build-system]
-requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
-build-backend = "setuptools.build_meta"
+requires = [
+    "setuptools",
+    "setuptools_scm",
+    "setuptools_scm_git_semver",
+]
+build-backend = 'setuptools.build_meta'
+
 [tool.setuptools_scm]
-write_to = "_version.py"
+#version_scheme = "guess_next_rc"
+#local_scheme = "semver"
+normalize = true
+write_to = "RAW_VERSION.txt"
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION.txt"}
+
+
 
 
