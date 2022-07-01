@@ -2,11 +2,11 @@ name: "Build client and Push Tag based on version"
 
 on:
   push:
-    branches: [master]
+    #branches: [master]
 
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: self-hosted
 
     steps:
       # needs a fetch depth of 0 to get all tags
@@ -62,3 +62,12 @@ jobs:
     - uses: rickstaa/action-create-tag@v1.3.2
       with:
         tag: "${{ steps.clean.outputs.value }}"
+
+    - name: Publish Python Package
+      uses: mariamrf/py-package-publish-action@v1.0.0
+      with:
+        python_version: '3.9.7'
+      env:
+        TWINE_USERNAME: ${{ secrets.NEXUS_PYPI_USER }}
+        TWINE_PASSWORD: ${{ secrets.NEXUS_PYPI_TOKEN }}
+        TWINE_REPOSITORY_URL: https://repo.devops.projectronin.io/repository/ronin-pypi/
