@@ -2,7 +2,7 @@ name: "Build client and Push Tag based on version"
 
 on:
   push:
-    branches: [master]
+    #branches: [master]
 
 jobs:
   build:
@@ -25,6 +25,7 @@ jobs:
       uses: juliangruber/read-file-action@v1
       with:
         path: ./VERSION.txt
+
     - name: Echo version
       run: echo "${{ steps.version_file.outputs.content }}"
 
