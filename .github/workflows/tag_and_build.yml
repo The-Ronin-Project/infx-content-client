@@ -56,6 +56,11 @@ jobs:
     - name: Echo version
       run: echo "${{ steps.clean.outputs.value }}"
 
-    - uses: actions-ecosystem/action-push-tag@v1
+
+    - uses: rickstaa/action-create-tag@v1
       with:
         tag: "${{ steps.clean.outputs.value }}"
+
+    # - uses: actions-ecosystem/action-push-tag@v1
+    #   with:
+    #     tag: "${{ steps.clean.outputs.value }}"
