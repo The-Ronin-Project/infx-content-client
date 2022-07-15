@@ -63,10 +63,27 @@ class ValueSet:
 
     @classmethod
     def load_all_value_set_versions_by_status(cls, status=['active', 'retired']):
-        data = requests.get(f'{BASE_URL}/ValueSets/all/', params={
-            'status': ','.join(status)
-        })
-        return data.json()
+        # Get all Value Sets
+        vs_metadata = requests.get(f'{BASE_URL}/ValueSets/?active_only=False')
+        all_versions_expanded = []
+
+        # For each Value Set, get versions
+        for value_set in vs_metadata.json():
+            vs_uuid = value_set.get('uuid')
+
+            version_metadata = requests.get(f'{BASE_URL}/ValueSets/{vs_uuid}/versions/')
+            for version in version_metadata.json():
+                if version.get('status') in status:
+                    version_uuid = version.get('uuid')
+                    vs = requests.get(f'{BASE_URL}/ValueSet/{version_uuid}/$expand')
+                    all_versions_expanded.append(vs.json())
+
+        return all_versions_expanded
+
+        # data = requests.get(f'{BASE_URL}/ValueSets/all/', params={
+        #     'status': ','.join(status)
+        # })
+        # return data.json()
 
 class ValueSetVersion:
     def __init__(self, json):
@@ -261,6 +278,8 @@ if __name__ == '__main__':
     # print(concept_map.get_mapping(code))
     # print(concept_map.mappings)
     
-    all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
-    print(all_concept_maps)
+    # all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
+    # print(all_concept_maps)
+
+    print(ValueSet.load_all_value_set_versions_by_status())
 
