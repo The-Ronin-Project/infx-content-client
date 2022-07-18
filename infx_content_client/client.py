@@ -259,7 +259,7 @@ class ConceptMapVersion:
     def get_mapping(self, code, filter_target_system=None, filter_equivalence=None):
         return self.mappings[code]
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
     # for code in vs_version.codes:
     #     print(code.serialize())
@@ -281,5 +281,5 @@ if __name__ == '__main__':
     # all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
     # print(all_concept_maps)
 
-    print(ValueSet.load_all_value_set_versions_by_status())
+    # print(ValueSet.load_all_value_set_versions_by_status())
 
