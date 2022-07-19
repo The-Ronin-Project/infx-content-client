@@ -35,47 +35,51 @@ class Code:
       
 
 class ValueSet:
-    def __init__(self, identifier):
+    def __init__(self, identifier, url=BASE_URL):
         self.identifier = identifier
+        self.url = url
 
     def load_most_recent_active_version(self):
-        vs = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/most_recent_active_version')
+        vs = requests.get(f'{self.url}/ValueSets/{self.identifier}/most_recent_active_version')
         # This can fail if there is no active version
         if vs.status_code != 200:
             raise Exception(vs.json().get('message'))
         return ValueSetVersion(vs.json())
 
     def load_versions_metadata(self):
-        md = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
+        md = requests.get(f'{self.url}/ValueSets/{self.identifier}/versions/')
         return md.json()
 
     def load_versions_metadata_as_df(self):
-        return pandas.read_json(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
+        return pandas.read_json(f'{self.url}/ValueSets/{self.identifier}/versions/')
 
     @classmethod
-    def load_all_value_sets_metadata(cls):
-        md = requests.get(f'{BASE_URL}/ValueSets/')
+    def load_all_value_sets_metadata(cls, url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        md = requests.get(f'{url}/ValueSets/')
         return md.json()
 
     @classmethod
-    def load_all_value_sets_metadata_as_df(cls):
-        return pandas.read_json(f'{BASE_URL}/ValueSets/')
+    def load_all_value_sets_metadata_as_df(cls, url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        return pandas.read_json(f'{url}/ValueSets/')
 
     @classmethod
-    def load_all_value_set_versions_by_status(cls, status=['active', 'retired']):
+    def load_all_value_set_versions_by_status(cls, status=['active', 'retired'], url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
         # Get all Value Sets
-        vs_metadata = requests.get(f'{BASE_URL}/ValueSets/?active_only=False')
+        vs_metadata = requests.get(f'{url}/ValueSets/?active_only=False')
         all_versions_expanded = []
 
         # For each Value Set, get versions
         for value_set in vs_metadata.json():
             vs_uuid = value_set.get('uuid')
 
-            version_metadata = requests.get(f'{BASE_URL}/ValueSets/{vs_uuid}/versions/')
+            version_metadata = requests.get(f'{url}/ValueSets/{vs_uuid}/versions/')
             for version in version_metadata.json():
                 if version.get('status') in status:
                     version_uuid = version.get('uuid')
-                    vs = requests.get(f'{BASE_URL}/ValueSet/{version_uuid}/$expand')
+                    vs = requests.get(f'{url}/ValueSet/{version_uuid}/$expand')
                     all_versions_expanded.append(vs.json())
 
         return all_versions_expanded
@@ -95,8 +99,9 @@ class ValueSetVersion:
         if self.type == 'intensional': self.load_intensional()
 
     @classmethod
-    def load(cls, uuid):
-        vs = requests.get(f'{BASE_URL}/ValueSet/{uuid}/$expand')
+    def load(cls, uuid, url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        vs = requests.get(f'{url}/ValueSet/{uuid}/$expand')
         return ValueSetVersion(vs.json())
     
     def is_intensional(self):
@@ -171,7 +176,8 @@ class ValueSetVersion:
     @property
     def experimental(self):
         return self.json.get('experimental')
-      
+
+
 class Mapping:
     def __init__(self, source_code, equivalence, target_code, comments=None):
         self.source_code = source_code
@@ -182,14 +188,20 @@ class Mapping:
     def __repr__(self):
         return f'({self.source_code.code}, {self.source_code.display})--[{self.equivalence}]->({self.target_code.code},{self.target_code.display})'
 
+
 class ConceptMap:
+
+    def __init__(self, url=BASE_URL):
+        self.url = url
+
     @classmethod
-    def all_concept_maps(cls, restrict_by_status=['active', 'retired']):
-        all_map_metadata = requests.get(f'{BASE_URL}/ConceptMaps/all/')
+    def all_concept_maps(cls, restrict_by_status=['active', 'retired'], url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        all_map_metadata = requests.get(f'{url}/ConceptMaps/all/')
         if all_map_metadata.status_code != 200:
             raise Exception("Unable to retrieve concept map metadata from infx-content API")
         filtered_metadata = [x for x in all_map_metadata.json() if x.get('status') in restrict_by_status]
-        return [ConceptMapVersion.load(x.get('concept_map_version_uuid')) for x in filtered_metadata]
+        return [ConceptMapVersion.load(x.get('concept_map_version_uuid'), url=url) for x in filtered_metadata]
 
     @classmethod
     def all_concept_maps_json(cls, restrict_by_status=['active', 'retired']):
@@ -200,7 +212,7 @@ class ConceptMap:
         pass
       
 class ConceptMapVersion:
-    def __init__(self, comments, description, effective_start, effective_end, experimental, publisher, purpose, status, title, version, mappings, raw_json):
+    def __init__(self, comments, description, effective_start, effective_end, experimental, publisher, purpose, status, title, version, mappings, raw_json, url=BASE_URL):
         self.comments = comments
         self.description = description
         self.effective_start = effective_start
@@ -213,10 +225,12 @@ class ConceptMapVersion:
         self.version = version
         self.mappings = mappings
         self.json = raw_json
+        self.url = url
 
     @classmethod
-    def load(cls, uuid):
-        md = requests.get(f'{BASE_URL}/ConceptMaps/{uuid}')
+    def load(cls, uuid, url=BASE_URL):
+        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        md = requests.get(f'{url}/ConceptMaps/{uuid}')
         if md.status_code != 200:
             raise Exception(f"Unable to retrieve concept map with UUID: {version_uuid}")
         data = md.json()
