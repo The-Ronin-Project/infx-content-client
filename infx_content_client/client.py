@@ -55,18 +55,18 @@ class ValueSet:
 
     @classmethod
     def load_all_value_sets_metadata(cls, url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         md = requests.get(f'{url}/ValueSets/')
         return md.json()
 
     @classmethod
     def load_all_value_sets_metadata_as_df(cls, url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         return pandas.read_json(f'{url}/ValueSets/')
 
     @classmethod
     def load_all_value_set_versions_by_status(cls, status=['active', 'retired'], url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         # Get all Value Sets
         vs_metadata = requests.get(f'{url}/ValueSets/?active_only=False')
         all_versions_expanded = []
@@ -90,8 +90,9 @@ class ValueSet:
         # return data.json()
 
 class ValueSetVersion:
-    def __init__(self, json):
+    def __init__(self, json, url=BASE_URL):
         self.json = json
+        self.url = url
         self.type = 'intensional' if self.is_intensional() is True else 'extensional'
         self.type = 'intensional'
         self.codes = []
@@ -100,7 +101,7 @@ class ValueSetVersion:
 
     @classmethod
     def load(cls, uuid, url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         vs = requests.get(f'{url}/ValueSet/{uuid}/$expand')
         return ValueSetVersion(vs.json())
     
@@ -196,7 +197,7 @@ class ConceptMap:
 
     @classmethod
     def all_concept_maps(cls, restrict_by_status=['active', 'retired'], url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         all_map_metadata = requests.get(f'{url}/ConceptMaps/all/')
         if all_map_metadata.status_code != 200:
             raise Exception("Unable to retrieve concept map metadata from infx-content API")
@@ -229,7 +230,7 @@ class ConceptMapVersion:
 
     @classmethod
     def load(cls, uuid, url=BASE_URL):
-        url = getattr(cls, 'url') if hasattr(cls, 'url') else url
+        url = getattr(cls, 'url', url)
         md = requests.get(f'{url}/ConceptMaps/{uuid}')
         if md.status_code != 200:
             raise Exception(f"Unable to retrieve concept map with UUID: {version_uuid}")
