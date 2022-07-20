@@ -60,27 +60,30 @@ class ValueSet:
     def load_versions_metadata_as_df(self):
         return pandas.read_json(f'{self.url}/ValueSets/{self.identifier}/versions/')
 
-    def load_all_value_sets_metadata(self):
-        md = requests.get(f'{self.url}/ValueSets/')
+    @staticmethod
+    def load_all_value_sets_metadata(url: str =BASE_URL):
+        md = requests.get(f'{url}/ValueSets/')
         return md.json()
 
-    def load_all_value_sets_metadata_as_df(self):
-        return pandas.read_json(f'{self.url}/ValueSets/')
+    @staticmethod
+    def load_all_value_sets_metadata_as_df(url: str =BASE_URL):
+        return pandas.read_json(f'{url}/ValueSets/')
 
-    def load_all_value_set_versions_by_status(self, status=['active', 'retired']):
+    @staticmethod
+    def load_all_value_set_versions_by_status(status=['active', 'retired'], url: str = BASE_URL):
         # Get all Value Sets
-        vs_metadata = requests.get(f'{self.url}/ValueSets/?active_only=False')
+        vs_metadata = requests.get(f'{url}/ValueSets/?active_only=False')
         all_versions_expanded = []
 
         # For each Value Set, get versions
         for value_set in vs_metadata.json():
             vs_uuid = value_set.get('uuid')
 
-            version_metadata = requests.get(f'{self.url}/ValueSets/{vs_uuid}/versions/')
+            version_metadata = requests.get(f'{url}/ValueSets/{vs_uuid}/versions/')
             for version in version_metadata.json():
                 if version.get('status') in status:
                     version_uuid = version.get('uuid')
-                    vs = requests.get(f'{self.url}/ValueSet/{version_uuid}/$expand')
+                    vs = requests.get(f'{url}/ValueSet/{version_uuid}/$expand')
                     all_versions_expanded.append(vs.json())
 
         return all_versions_expanded
