@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import requests, pandas
 
-BASE_URL = "https://hashi.prod.projectronin.io/"
-# BASE_URL = "http://127.0.0.1:5500/"
+BASE_URL: str = "https://hashi.prod.projectronin.io/"
+
 
 class Code:
     def __init__(self, system, version, code, display):
@@ -31,51 +33,57 @@ class Code:
         return hash((self.code, self.display, self.system, self.version))
 
     def __eq__(self, other):
-        return (self.code, self.display, self.system, self.version) == (other.code, other.display, other.system, other.version)
-      
+        return (self.code, self.display, self.system, self.version) == (
+        other.code, other.display, other.system, other.version)
+
 
 class ValueSet:
-    def __init__(self, identifier):
+    url: str
+    identifier: str
+
+    def __init__(self, identifier, url=BASE_URL):
         self.identifier = identifier
+        self.url = url
 
     def load_most_recent_active_version(self):
-        vs = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/most_recent_active_version')
+        vs = requests.get(
+            f'{self.url}/ValueSets/{self.identifier}/most_recent_active_version')
         # This can fail if there is no active version
         if vs.status_code != 200:
             raise Exception(vs.json().get('message'))
         return ValueSetVersion(vs.json())
 
     def load_versions_metadata(self):
-        md = requests.get(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
+        md = requests.get(f'{self.url}/ValueSets/{self.identifier}/versions/')
         return md.json()
 
     def load_versions_metadata_as_df(self):
-        return pandas.read_json(f'{BASE_URL}/ValueSets/{self.identifier}/versions/')
+        return pandas.read_json(f'{self.url}/ValueSets/{self.identifier}/versions/')
 
-    @classmethod
-    def load_all_value_sets_metadata(cls):
-        md = requests.get(f'{BASE_URL}/ValueSets/')
+    @staticmethod
+    def load_all_value_sets_metadata(url: str =BASE_URL):
+        md = requests.get(f'{url}/ValueSets/')
         return md.json()
 
-    @classmethod
-    def load_all_value_sets_metadata_as_df(cls):
-        return pandas.read_json(f'{BASE_URL}/ValueSets/')
+    @staticmethod
+    def load_all_value_sets_metadata_as_df(url: str =BASE_URL):
+        return pandas.read_json(f'{url}/ValueSets/')
 
-    @classmethod
-    def load_all_value_set_versions_by_status(cls, status=['active', 'retired']):
+    @staticmethod
+    def load_all_value_set_versions_by_status(status=['active', 'retired'], url: str = BASE_URL):
         # Get all Value Sets
-        vs_metadata = requests.get(f'{BASE_URL}/ValueSets/?active_only=False')
+        vs_metadata = requests.get(f'{url}/ValueSets/?active_only=False')
         all_versions_expanded = []
 
         # For each Value Set, get versions
         for value_set in vs_metadata.json():
             vs_uuid = value_set.get('uuid')
 
-            version_metadata = requests.get(f'{BASE_URL}/ValueSets/{vs_uuid}/versions/')
+            version_metadata = requests.get(f'{url}/ValueSets/{vs_uuid}/versions/')
             for version in version_metadata.json():
                 if version.get('status') in status:
                     version_uuid = version.get('uuid')
-                    vs = requests.get(f'{BASE_URL}/ValueSet/{version_uuid}/$expand')
+                    vs = requests.get(f'{url}/ValueSet/{version_uuid}/$expand')
                     all_versions_expanded.append(vs.json())
 
         return all_versions_expanded
@@ -85,23 +93,30 @@ class ValueSet:
         # })
         # return data.json()
 
+
 class ValueSetVersion:
-    def __init__(self, json):
+    json: dict
+    url: str
+    type: str
+    codes: list
+
+    def __init__(self, json, url=BASE_URL):
         self.json = json
+        self.url = url
         self.type = 'intensional' if self.is_intensional() is True else 'extensional'
         self.type = 'intensional'
         self.codes = []
 
-        if self.type == 'intensional': self.load_intensional()
+        if self.type == 'intensional':
+            self.load_intensional()
 
-    @classmethod
-    def load(cls, uuid):
-        vs = requests.get(f'{BASE_URL}/ValueSet/{uuid}/$expand')
+    def load(self, uuid):
+        vs = requests.get(f'{self.url}/ValueSet/{uuid}/$expand')
         return ValueSetVersion(vs.json())
-    
+
     def is_intensional(self):
         for x in self.json.get('compose').get('include'):
-            if 'filter' in x: 
+            if 'filter' in x:
                 return True
 
     def load_intensional(self):
@@ -171,7 +186,8 @@ class ValueSetVersion:
     @property
     def experimental(self):
         return self.json.get('experimental')
-      
+
+
 class Mapping:
     def __init__(self, source_code, equivalence, target_code, comments=None):
         self.source_code = source_code
@@ -182,25 +198,37 @@ class Mapping:
     def __repr__(self):
         return f'({self.source_code.code}, {self.source_code.display})--[{self.equivalence}]->({self.target_code.code},{self.target_code.display})'
 
+
 class ConceptMap:
-    @classmethod
-    def all_concept_maps(cls, restrict_by_status=['active', 'retired']):
-        all_map_metadata = requests.get(f'{BASE_URL}/ConceptMaps/all/')
+    url: str
+
+    def __init__(self, url=BASE_URL):
+        self.url = url
+
+    def all_concept_maps(self, restrict_by_status=['active', 'retired']):
+        all_map_metadata = requests.get(f'{self.url}/ConceptMaps/all/')
         if all_map_metadata.status_code != 200:
-            raise Exception("Unable to retrieve concept map metadata from infx-content API")
-        filtered_metadata = [x for x in all_map_metadata.json() if x.get('status') in restrict_by_status]
-        return [ConceptMapVersion.load(x.get('concept_map_version_uuid')) for x in filtered_metadata]
+            raise Exception(
+                "Unable to retrieve concept map metadata from infx-content API")
+        filtered_metadata = [x for x in all_map_metadata.json() if
+                             x.get('status') in restrict_by_status]
+        return [ConceptMapVersion.load(x.get('concept_map_version_uuid')) for x
+                in filtered_metadata]
 
     @classmethod
     def all_concept_maps_json(cls, restrict_by_status=['active', 'retired']):
-        return [x.json for x in cls.all_concept_maps(restrict_by_status=restrict_by_status)]
-      
+        return [x.json for x in
+                cls.all_concept_maps(restrict_by_status=restrict_by_status)]
+
     @classmethod
     def load_most_recent_active_version(uuid):
         pass
-      
+
+
 class ConceptMapVersion:
-    def __init__(self, comments, description, effective_start, effective_end, experimental, publisher, purpose, status, title, version, mappings, raw_json):
+    def __init__(self, comments, description, effective_start, effective_end,
+                 experimental, publisher, purpose, status, title, version, mappings,
+                 raw_json, url=BASE_URL):
         self.comments = comments
         self.description = description
         self.effective_start = effective_start
@@ -213,12 +241,13 @@ class ConceptMapVersion:
         self.version = version
         self.mappings = mappings
         self.json = raw_json
+        self.url = url
 
-    @classmethod
-    def load(cls, uuid):
-        md = requests.get(f'{BASE_URL}/ConceptMaps/{uuid}')
+    @staticmethod
+    def load(uuid, url=BASE_URL) -> ConceptMapVersion:
+        md = requests.get(f'{url}/ConceptMaps/{uuid}')
         if md.status_code != 200:
-            raise Exception(f"Unable to retrieve concept map with UUID: {version_uuid}")
+            raise Exception(f"Unable to retrieve concept map with UUID: {uuid}")
         data = md.json()
 
         mappings = {}
@@ -231,55 +260,59 @@ class ConceptMapVersion:
             target_version = group.get('targetVersion')
 
             for element in group.get('element'):
-                source_code = Code(source_terminology, source_version, element.get('code'), element.get('display'))
+                source_code = Code(source_terminology, source_version,
+                                   element.get('code'), element.get('display'))
                 mapped_codes_for_source = [
-                    Mapping(source_code, item.get('equivalence'), Code(target_terminology, target_version, item.get('code'), item.get('display')), comments=item.get('comment'))
+                    Mapping(source_code, item.get('equivalence'),
+                            Code(target_terminology, target_version, item.get('code'),
+                                 item.get('display')), comments=item.get('comment'))
                     for item in element.get('target')
                 ]
-                if source_code not in mappings: # Ensure we don't overwrite any mappings
+                if source_code not in mappings:  # Ensure we don't overwrite any mappings
                     mappings[source_code] = mapped_codes_for_source
                 else:
-                    mappings[source_code] = mappings[source_code] + mapped_codes_for_source
-        
-        return cls(
-            comments = data.get('comments'),
-            description = data.get('description'),
-            effective_start = data.get('effective_start'),
-            effective_end = data.get('effective_end'),
-            experimental = data.get('experimental'),
-            publisher = data.get('publisher'),
-            purpose = data.get('purpose'),
-            status = data.get('status'),
-            title = data.get('title'),
-            version = data.get('version'),
-            mappings = mappings,
-            raw_json = data
+                    mappings[source_code] = mappings[
+                                                source_code] + mapped_codes_for_source
+
+        return ConceptMapVersion(
+            comments=data.get('comments'),
+            description=data.get('description'),
+            effective_start=data.get('effective_start'),
+            effective_end=data.get('effective_end'),
+            experimental=data.get('experimental'),
+            publisher=data.get('publisher'),
+            purpose=data.get('purpose'),
+            status=data.get('status'),
+            title=data.get('title'),
+            version=data.get('version'),
+            mappings=mappings,
+            raw_json=data,
+            url=url
         )
 
     def get_mapping(self, code, filter_target_system=None, filter_equivalence=None):
         return self.mappings[code]
 
 # if __name__ == '__main__':
-    # vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
-    # for code in vs_version.codes:
-    #     print(code.serialize())
-        
-    # metadata = ValueSet('test-breast-cancer').load_versions_metadata_as_df()
-    # print(metadata)
+# vs_version = ValueSet('test-breast-cancer').load_most_recent_active_version()
+# for code in vs_version.codes:
+#     print(code.serialize())
 
-    # version = ValueSetVersion.load('529ef7a0-4241-11ec-bec2-fbf6ebf76a60')
-    # print(version)
+# metadata = ValueSet('test-breast-cancer').load_versions_metadata_as_df()
+# print(metadata)
 
-    # failed_version = ValueSet('0bd56b70-9ff6-11ec-95eb-3f73787c1997').load_most_recent_active_version()
-    # print(dir(failed_version))
+# version = ValueSetVersion.load('529ef7a0-4241-11ec-bec2-fbf6ebf76a60')
+# print(version)
 
-    # concept_map = ConceptMapVersion.load('cbe12636-102f-4ab0-9616-a8684c9f2a21')
-    # code = Code('http://projectronin.io/fhir/terminologies/NLPSymptomsExtractionModel', '1', 'ee688a9f-8935-4190-83a6-ea9c970e40cf', "activity change")
-    # print(concept_map.get_mapping(code))
-    # print(concept_map.mappings)
-    
-    # all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
-    # print(all_concept_maps)
+# failed_version = ValueSet('0bd56b70-9ff6-11ec-95eb-3f73787c1997').load_most_recent_active_version()
+# print(dir(failed_version))
 
-    # print(ValueSet.load_all_value_set_versions_by_status())
+# concept_map = ConceptMapVersion.load('cbe12636-102f-4ab0-9616-a8684c9f2a21')
+# code = Code('http://projectronin.io/fhir/terminologies/NLPSymptomsExtractionModel', '1', 'ee688a9f-8935-4190-83a6-ea9c970e40cf', "activity change")
+# print(concept_map.get_mapping(code))
+# print(concept_map.mappings)
 
+# all_concept_maps = ConceptMap.all_concept_maps_json(restrict_by_status=['active', 'retired', 'in progress'])
+# print(all_concept_maps)
+
+# print(ValueSet.load_all_value_set_versions_by_status())
