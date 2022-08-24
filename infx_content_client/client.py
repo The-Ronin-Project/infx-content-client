@@ -110,9 +110,10 @@ class ValueSetVersion:
         if self.type == 'intensional':
             self.load_intensional()
 
-    def load(self, uuid):
-        vs = requests.get(f'{self.url}/ValueSet/{uuid}/$expand')
-        return ValueSetVersion(vs.json())
+    @classmethod
+    def load(cls, uuid, url=BASE_URL):
+        vs = requests.get(f'{url}/ValueSet/{uuid}/$expand')
+        return cls(vs.json())
 
     def is_intensional(self):
         for x in self.json.get('compose').get('include'):
