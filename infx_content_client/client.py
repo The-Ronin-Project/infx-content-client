@@ -61,8 +61,11 @@ class ValueSet:
         return pandas.read_json(f'{self.url}/ValueSets/{self.identifier}/versions/')
 
     @staticmethod
-    def load_all_value_sets_metadata(url: str =BASE_URL):
-        md = requests.get(f'{url}/ValueSets/')
+    def load_all_value_sets_metadata(url: str =BASE_URL, active_only=True):
+        if active_only is True:
+            md = requests.get(f'{url}/ValueSets/')
+        else:
+            md = requests.get(f'{url}/ValueSets/?active_only=false')
         return md.json()
 
     @staticmethod
