@@ -106,24 +106,15 @@ class ValueSetVersion:
     def __init__(self, json, url=BASE_URL):
         self.json = json
         self.url = url
-        self.type = 'intensional' if self.is_intensional() is True else 'extensional'
-        self.type = 'intensional'
         self.codes = []
-
-        if self.type == 'intensional':
-            self.load_intensional()
+        self.load_contents()
 
     @classmethod
     def load(cls, uuid, url=BASE_URL):
         vs = requests.get(f'{url}/ValueSet/{uuid}/$expand')
         return cls(vs.json())
 
-    def is_intensional(self):
-        for x in self.json.get('compose').get('include'):
-            if 'filter' in x:
-                return True
-
-    def load_intensional(self):
+    def load_contents(self):
         for x in self.json.get('expansion').get('contains'):
             self.codes.append(
                 Code(
